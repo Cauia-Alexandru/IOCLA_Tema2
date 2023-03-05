@@ -1,0 +1,56 @@
+Cauia Alexandru 324CB
+1.
+Incep a lua de la sfarsit cate un byte din plaintext si acte un byte din key.
+Fac xor intre bytes si rezultatul il pun la sfarsit de ciphertext. Inchei 
+programul cand i ajune la len.
+
+2.
+Stochez ziua,luna,anul a timpului prezent in variabile. Apoi pun intr-un registru
+anu de nastere. Compar cu anul curent, daca rezulatul e nagativ sar la o stare unde 
+afisez 0. Daca nu e negativ, compar luna in care s-a nascut cu luna curenta. Daca
+rezulatul e nagativ, sar la o stare unde scad un an din varsta, daca nu e negativ, la
+alta stare unde afisez varsta(rezultatul scaderii dintre anu curent si anul de nastere).
+Apoi compar zilele. 
+
+3.
+Aflu daca impartirea l_plain/l_key are rest. Daca are, adaug inca un 1 in plus conform
+functiei ceil. i il folosesc pentru incrementare in primul loop, adica in vectorul
+de indecsi a cheii. j ca si counter in loop-ul 2.
+Formula pentru a lua cate un byte potrivit la fiecare iteratie din haystack este:
+[esi + ordinea_cheii + j * len_cheie]. Fac inmultirea aparte, rezultatul stocandu-se 
+in eax, apoi adun ordinea cheii. Compar rezultatul cu len_haystack, daca depasesc,
+ma intorc la starea start. Daca nu, adun esi(haystack) cu rezultatul. Dupa ce am compus
+formula, iau de la esi un byte si il pun in ciphertext, folosindu-ma de un counter
+care incepe de la 0, ca sa stiu la ce pozitie sa pun acel byte. Compar nr de linii cu'
+j, daca <=, jump in start, daca > in starea curenta. Programul se incheie cand 
+termin de parcurs vectorul de indecsi a cheii.
+
+4.
+Calculez tagul cu o shiftare la dreapta de 3 ori. Apoi intr-un 
+loop in ecx pun cate un tag din din vectorul de taguri comparandu-le
+la fiecare iteratie. Scad tagurile si compar cu 0. Daca sunt egale trec in
+starea calc_offset. Daca nu incrementez i-ul si caut mai departe pana i ajunge la
+CACHE_LINES. Daca ajunge sa fie mai mare inseamna ca nu a gasit tagul si trec
+in starea put_tag_value.
+
+starea calc_offset:
+daca am gasit tagul trebuie sa scriu in registru octetul cache[i][offset]. Pentru asta 
+inmultesc indexul cu 8(mul), pentru ca sa sar peste 8 biti pentru a ajunge la pozitia 
+de unde sa iau octetul. Apoi la rezultatul inmultirii  adun offsetul( eax+edx), care il calculez
+shhiftand de 29 ori la stanga apoi la dreapta. De la [cache + eax] iau bayt-ul si il pun in 
+registru si sar la end.
+
+starea tag_value:
+Daca nu am gasit tagul il pun in matricea de taguri.
+
+starea cache_miss:
+Shiftez adresa de 3 ori la dreapta apoi de 3 ori la stanga, ca sa fac 3 zerouri la final.
+In variabila j, pun 7, pentru ca in loop-ul urmator va trebui sa iterez de 7 ori.
+
+starea cache_miss2:
+iau cate un byte de la fiecare adresa din cele 8(care au offsetul de la 000 la 111) si il 
+pun cache[to_replace][k]. Pentru asta fac ca in starea anterioara, fac inmultirea cu 8, apoi adaug
+in acel registru counterul. Dupa ce pun byte-ul in cache, incrementez counterul si il 
+compar cu 8. Daca e mai mic, ma intorc in loop.
+
+La final iau byte de la adress si il pun in address of reg.
